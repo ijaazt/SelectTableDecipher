@@ -1,0 +1,27 @@
+#!/bin/env perl
+use strict;
+use warnings;
+ 
+my $inFile = 'fullPeople';
+open(my $fh, '<', $inFile) or die "Could not open file $inFile: $!";
+
+my @lines = <$fh>;
+
+sub tableRow {
+	my @cols = split /\s+\|\s*/, $_[0];
+	$cols[1] = "($cols[1]";
+	for (1..$#cols - 1) {
+		$cols[$_] = "'$cols[$_]'" if($_ =~ /[2-4]|[6-9]|10|11/ && $_[1]) ;
+		$cols[$_] = " $cols[$_], " if($cols[$_] =~ /\S/);
+	}
+	$cols[$#cols] = "'$cols[$#cols]'" if ($_[1]);
+	$cols[$#cols] = "$cols[$#cols])";
+	return @cols;
+}
+
+my $tableName = "USER";
+print "INSERT INTO $tableName";
+print tableRow($lines[2]);
+print " VALUES \n";
+print tableRow("$lines[$_],\n", 1) for (4...$#lines - 5);
+print tableRow($lines[$#lines - 4], 1);
